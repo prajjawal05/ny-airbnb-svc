@@ -11,6 +11,8 @@ _map_boro_code = {
     'Staten Island': '5'
 }
 
+year_range = ['2003-07', '2008-12', '2013-17', '2018-22'];
+
 def convert_price_to_number(price: str):
     price = price.strip()
     if price.startswith('$'):
@@ -37,11 +39,12 @@ class Service(object):
         self.data_set['price'] = self.data_set['price'].apply(convert_price_to_number)
         self.data_set['service fee'] = self.data_set['service fee'].apply(convert_price_to_number)
         self.data_set['boro_code'] = self.data_set['neighbourhood group'].apply(lambda n: _map_boro_code.get(n))
+        self.data_set['year_range'] = self.data_set['Construction year'].apply(lambda yr: year_range[(yr-2003)//5])
 
 
 if __name__ == '__main__':
     svc = Service()
     svc.init_data()
     f = open('data.json', 'w')
-    f.write(svc.data_set.to_json(orient="records"))
+    f.write(svc.data_set.sample(frac=0.05).to_json(orient="records"))
     f.close()
