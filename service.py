@@ -86,10 +86,9 @@ class Service(object):
         sunburst_filter_result = True
         for sunburst_filter in filter.get('SUNBURST', []):
             sunburst_filter_result = False
-            
             if (data['price_range'] == sunburst_filter['0']) \
-                  and (not data['instant_bookable'] or data['instant_bookable'] == sunburst_filter['1']) \
-                    and (not data['cancellation_policy'] or data['cancellation_policy'] == sunburst_filter['2']):
+                  and (not sunburst_filter['1'] or data['instant_bookable'] == sunburst_filter['1']) \
+                    and (not sunburst_filter['2'] or data['cancellation_policy'] == sunburst_filter['2']):
                 
                 sunburst_filter_result = True
                 break
