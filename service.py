@@ -62,14 +62,14 @@ class Service(object):
     
     def apply_filter(self, data, filter):
         map_filter_result = True
-        for map_filter in filter['MAP']:
+        for map_filter in filter.get('MAP', []):
             map_filter_result = False
             if data['boro_code'] == map_filter:
                 map_filter_result = True
                 break
 
         scatter_plot_filter_result = True
-        for sc_filter in filter['SCATTER_PLOT']:
+        for sc_filter in filter.get('SCATTER_PLOT', []):
             scatter_plot_filter_result = False
             if data['review rate number'] == sc_filter:
                 scatter_plot_filter_result = True
@@ -77,14 +77,14 @@ class Service(object):
 
         # Apply 'OR' filter on 'BAR_GRAPH' attribute
         bar_graph_filter_result = True
-        for bar_graph_filter in filter['BAR_GRAPH']:
+        for bar_graph_filter in filter.get('BAR_GRAPH', []):
             bar_graph_filter_result = False
             if all((data['year_range'] == bar_graph_filter['key'], data['room type'] == self.map_room_type[bar_graph_filter['roomType']])):
                 bar_graph_filter_result = True
                 break
 
         sunburst_filter_result = True
-        for sunburst_filter in filter['SUNBURST']:
+        for sunburst_filter in filter.get('SUNBURST', []):
             sunburst_filter_result = False
             
             if (data['price_range'] == sunburst_filter['0']) \
