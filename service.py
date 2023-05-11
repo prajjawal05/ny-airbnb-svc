@@ -28,6 +28,12 @@ def convert_price_to_number(price: str):
 class Service(object):
     data_set = None
     pca = None
+    map_room_type = {
+        'Entire_home_apt': "Entire home/apt",
+        'Private_room': "Private room",
+        'Shared_room': "Shared room",
+        'Hotel_room': "Hotel room"
+    }
 
     def __init__(self) -> None:
         '''Initializes data'''
@@ -47,6 +53,50 @@ class Service(object):
         self.data_set['year_range'] = self.data_set['Construction year'].apply(lambda yr: year_range[(yr-2003)//5])
         self.data_set['price_range'] = self.data_set['price'].apply(lambda p: price_range[(p-1)//300])
 
+    
+    # {'MAP': ['4', '6'], 'SCATTER_PLOT': [4], 'BAR_GRAPH': [{'key': '2018-22', 'Entire_home_apt': 98, 'Hotel_room': 1, 'Private_room': 75, 'Shared_room': 1, 'roomType': 'Private_room'}], 'SUNBURST': [{'0': '900-1200', '1': False, '2': 'strict'}]}
+    def get_filtered_data(self, filters):
+        all_data = json.loads(self.data_set.to_json(orient="records"))
+        data = list(filter(lambda d: self.apply_filter(d, filters), all_data))
+        return data
+    
+    def apply_filter(self, data, filter):
+        map_filter_result = True
+        for map_filter in filter['MAP']:
+            map_filter_result = False
+            if data['boro_code'] == map_filter:
+                map_filter_result = True
+                break
+
+        scatter_plot_filter_result = True
+        for sc_filter in filter['SCATTER_PLOT']:
+            scatter_plot_filter_result = False
+            if data['review rate number'] == sc_filter:
+                scatter_plot_filter_result = True
+                break
+
+        # Apply 'OR' filter on 'BAR_GRAPH' attribute
+        bar_graph_filter_result = True
+        for bar_graph_filter in filter['BAR_GRAPH']:
+            bar_graph_filter_result = False
+            if all((data['year_range'] == bar_graph_filter['key'], data['room type'] == self.map_room_type[bar_graph_filter['roomType']])):
+                bar_graph_filter_result = True
+                break
+
+        sunburst_filter_result = True
+        for sunburst_filter in filter['SUNBURST']:
+            sunburst_filter_result = False
+            
+            if (data['price_range'] == sunburst_filter['0']) \
+                  and (not data['instant_bookable'] or data['instant_bookable'] == sunburst_filter['1']) \
+                    and (not data['cancellation_policy'] or data['cancellation_policy'] == sunburst_filter['2']):
+                
+                sunburst_filter_result = True
+                break
+
+    # Apply 'AND' filter between all attributes
+        return all((map_filter_result, scatter_plot_filter_result, bar_graph_filter_result, sunburst_filter_result))
+
 
     def get_mds_data(self):
         df = pd.DataFrame(
@@ -64,7 +114,6 @@ class Service(object):
         max_dist = max(nodes, key=lambda x: x['size'])['size']
         min_dist = min(nodes, key=lambda x: x['size'])['size']
 
-        print(max_dist, min_dist)
         for node in nodes:
             node['size'] = ((node['size'] - min_dist)/(max_dist-min_dist))*10 + 5
 
