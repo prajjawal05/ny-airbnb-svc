@@ -13,4 +13,9 @@ def get_data():
     return m.get_filtered_data(request.json)
 
 
+@server.route('/api/mds', methods=['POST'])
+def get_mds():
+    return m.get_mds_for_filtered_data(request.json)
+
+
 server.run(port=5668, debug=True)

@@ -96,10 +96,19 @@ class Service(object):
     # Apply 'AND' filter between all attributes
         return all((map_filter_result, scatter_plot_filter_result, bar_graph_filter_result, sunburst_filter_result))
 
+    def get_mds_for_filtered_data(self, filters):
+        if len(filters.get('SCATTER_PLOT', [])) == 1:
+            return self._get_mds_data(self.data_set[NUMERICAL_COLUMNS])
+        
+        filtered_data = self.data_set.apply(lambda x: self.apply_filter(x.to_dict(), filters), axis=1)
+        filtered_df = self.data_set[filtered_data]
 
-    def get_mds_data(self):
+        return self._get_mds_data(filtered_df[NUMERICAL_COLUMNS])
+
+    
+    def _get_mds_data(self, data_set):
         df = pd.DataFrame(
-            MDS(dissimilarity='precomputed', random_state=49).fit_transform(1-self.data_set[NUMERICAL_COLUMNS].corr()), columns=["x", "y"]
+            MDS(dissimilarity='precomputed', random_state=49).fit_transform(1-data_set.corr()), columns=["x", "y"]
         )
         return self._convert_mds_to_dict(json.loads(df.to_json(orient="records")))
     
@@ -133,6 +142,6 @@ if __name__ == '__main__':
     svc = Service()
     svc.init_data()
     f = open('data.json', 'w')
-    print(json.dumps(svc.get_mds_data()))
+    print(json.dumps(svc._get_mds_data()))
     f.write(svc.data_set.to_json(orient="records"))
     f.close()
