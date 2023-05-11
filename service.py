@@ -86,5 +86,5 @@ if __name__ == '__main__':
     svc.init_data()
     f = open('data.json', 'w')
     print(json.dumps(svc.get_mds_data()))
-    f.write(svc.data_set.sample(frac=0.01).to_json(orient="records"))
+    f.write(svc.data_set.to_json(orient="records"))
     f.close()
